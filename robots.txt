@@ -1,0 +1,71 @@
+# Robots.txt para precodocafe.com.br
+# Consultoria e Assessoria em Cafeicultura
+
+# Permitir todos os bots nos conteúdos principais
+User-agent: *
+Allow: /
+
+# Páginas importantes para SEO
+Allow: /index.html
+Allow: /servicos.html
+Allow: /produtos.html
+Allow: /cafes-especiais.html
+Allow: /cases.html
+Allow: /downloads.html
+Allow: /contato.html
+Allow: /sobre-nos.html
+Allow: /transparencia.html
+
+# Páginas legais (menor prioridade mas indexáveis)
+Allow: /termos.html
+Allow: /politica.html
+
+# Permitir arquivos CSS e JS para renderização
+Allow: /styles.css
+Allow: /scripts.js
+
+# Bloquear apenas arquivos desnecessários para SEO
+Disallow: /logo-demo.html
+Disallow: /logo-standalone.html
+Disallow: /logo.html
+Disallow: /header.html
+Disallow: /footer.html
+Disallow: /content.html
+Disallow: /*.txt$
+
+# Localização do Sitemap
+Sitemap: https://precodocafe.com.br/sitemap.xml
+
+# Configurações específicas para Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Configurações para Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Permitir crawlers de redes sociais
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Configurações para outros bots importantes
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Notas para desenvolvedores:
+# - Este robots.txt otimiza a indexação para consultoria cafeeira
+# - Prioriza páginas de serviços, produtos e conteúdo técnico
+# - Permite acesso total aos recursos necessários para renderização
+# - Sitemap.xml incluído para melhor descoberta de páginas 
