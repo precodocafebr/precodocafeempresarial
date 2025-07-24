@@ -359,3 +359,301 @@ function showDownloadProgress(fileName) {
         document.body.removeChild(progressDiv);
     }, 3200);
 } 
+
+// Cookie Banner Management
+document.addEventListener('DOMContentLoaded', function() {
+    const cookieBanner = document.getElementById('cookie-banner');
+    const cookieModal = document.getElementById('cookie-modal');
+    const acceptBtn = document.getElementById('accept-cookies');
+    const rejectBtn = document.getElementById('reject-cookies');
+    const customizeBtn = document.getElementById('customize-cookies');
+    const closeModalBtn = document.getElementById('close-modal');
+    const savePreferencesBtn = document.getElementById('save-preferences');
+    const acceptAllModalBtn = document.getElementById('accept-all-modal');
+    
+    // Check if user has already made a choice
+    const cookieChoice = localStorage.getItem('cookieChoice');
+    
+    if (!cookieChoice && cookieBanner) {
+        // Show banner after 2 seconds
+        setTimeout(() => {
+            cookieBanner.classList.add('show');
+        }, 2000);
+    }
+    
+    // Accept all cookies
+    acceptBtn?.addEventListener('click', function() {
+        setCookiePreferences({
+            essential: true,
+            analytics: true,
+            marketing: true
+        });
+        hideBanner();
+        showAcceptMessage();
+    });
+    
+    // Reject non-essential cookies
+    rejectBtn?.addEventListener('click', function() {
+        setCookiePreferences({
+            essential: true,
+            analytics: false,
+            marketing: false
+        });
+        hideBanner();
+        showRejectMessage();
+    });
+    
+    // Open customization modal
+    customizeBtn?.addEventListener('click', function() {
+        cookieModal.classList.add('show');
+        loadCurrentPreferences();
+    });
+    
+    // Close modal
+    closeModalBtn?.addEventListener('click', function() {
+        cookieModal.classList.remove('show');
+    });
+    
+    // Close modal when clicking outside
+    cookieModal?.addEventListener('click', function(e) {
+        if (e.target === cookieModal) {
+            cookieModal.classList.remove('show');
+        }
+    });
+    
+    // Save preferences from modal
+    savePreferencesBtn?.addEventListener('click', function() {
+        const preferences = getModalPreferences();
+        setCookiePreferences(preferences);
+        cookieModal.classList.remove('show');
+        hideBanner();
+        showPreferencesMessage(preferences);
+    });
+    
+    // Accept all from modal
+    acceptAllModalBtn?.addEventListener('click', function() {
+        setCookiePreferences({
+            essential: true,
+            analytics: true,
+            marketing: true
+        });
+        cookieModal.classList.remove('show');
+        hideBanner();
+        showAcceptMessage();
+    });
+    
+    function hideBanner() {
+        if (cookieBanner) {
+            cookieBanner.classList.remove('show');
+        }
+    }
+    
+    function setCookiePreferences(preferences) {
+        localStorage.setItem('cookieChoice', JSON.stringify(preferences));
+        localStorage.setItem('cookieTimestamp', Date.now().toString());
+        
+        // Apply preferences
+        if (preferences.analytics) {
+            enableAnalytics();
+        } else {
+            disableAnalytics();
+        }
+        
+        if (preferences.marketing) {
+            enableMarketing();
+        } else {
+            disableMarketing();
+        }
+    }
+    
+    function loadCurrentPreferences() {
+        const choice = localStorage.getItem('cookieChoice');
+        if (choice) {
+            const preferences = JSON.parse(choice);
+            document.getElementById('analytics-cookies').checked = preferences.analytics;
+            document.getElementById('marketing-cookies').checked = preferences.marketing;
+        }
+    }
+    
+    function getModalPreferences() {
+        return {
+            essential: true, // Always true
+            analytics: document.getElementById('analytics-cookies').checked,
+            marketing: document.getElementById('marketing-cookies').checked
+        };
+    }
+    
+    function enableAnalytics() {
+        // Google Analytics is already loaded, just ensure it's active
+        if (typeof gtag !== 'undefined') {
+            gtag('consent', 'update', {
+                'analytics_storage': 'granted'
+            });
+        }
+    }
+    
+    function disableAnalytics() {
+        if (typeof gtag !== 'undefined') {
+            gtag('consent', 'update', {
+                'analytics_storage': 'denied'
+            });
+        }
+    }
+    
+    function enableMarketing() {
+        if (typeof gtag !== 'undefined') {
+            gtag('consent', 'update', {
+                'ad_storage': 'granted',
+                'ad_user_data': 'granted',
+                'ad_personalization': 'granted'
+            });
+        }
+    }
+    
+    function disableMarketing() {
+        if (typeof gtag !== 'undefined') {
+            gtag('consent', 'update', {
+                'ad_storage': 'denied',
+                'ad_user_data': 'denied',
+                'ad_personalization': 'denied'
+            });
+        }
+    }
+    
+    function showAcceptMessage() {
+        showNotification('✅ Cookies aceitos! Obrigado por nos ajudar a melhorar sua experiência.', 'success');
+    }
+    
+    function showRejectMessage() {
+        showNotification('ℹ️ Apenas cookies essenciais serão utilizados. Algumas funcionalidades podem ser limitadas.', 'info');
+    }
+    
+    function showPreferencesMessage(preferences) {
+        const accepted = [];
+        if (preferences.analytics) accepted.push('Analytics');
+        if (preferences.marketing) accepted.push('Marketing');
+        
+        if (accepted.length > 0) {
+            showNotification(`✅ Preferências salvas! Cookies aceitos: ${accepted.join(', ')}`, 'success');
+        } else {
+            showNotification('ℹ️ Apenas cookies essenciais serão utilizados.', 'info');
+        }
+    }
+    
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `cookie-notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-message">${message}</span>
+                <button class="notification-close">&times;</button>
+            </div>
+        `;
+        
+        // Add styles
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#4caf50' : '#2196f3'};
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 3000;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease;
+        `;
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }
+        }, 5000);
+        
+        // Close button
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        });
+    }
+    
+    // Apply saved preferences on page load
+    if (cookieChoice) {
+        const preferences = JSON.parse(cookieChoice);
+        if (preferences.analytics) {
+            enableAnalytics();
+        }
+        if (preferences.marketing) {
+            enableMarketing();
+        }
+    }
+});
+
+// Add CSS animations for notifications
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .notification-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    
+    .notification-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s ease;
+    }
+    
+    .notification-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+`;
+document.head.appendChild(style); 
